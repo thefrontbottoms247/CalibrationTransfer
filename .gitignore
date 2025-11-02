@@ -1,0 +1,24 @@
+# R package + RStudio
+.Rhistory
+.RData
+.Rproj.user/
+.Rproj
+.Rbuildignore
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+# Temporary
+*.tmp
+*.log
+tmp/
+temp/
+# Compiled/binary
+*.o
+*.so
+*.dll
+*.exe
+# Personal directories
+C:/Users/wcc93/AppData/
+C:/Users/wcc93/Documents/
+C:/Users/wcc93/Downloads/
