@@ -4,18 +4,22 @@
 \alias{Run_Confusion}
 \title{Run Model Confusion Matrices Safely}
 \usage{
-Run_Confusion(models, dataset)
+Run_Confusion(models, dataset, class = NULL)
 }
 \arguments{
-\item{models}{List of trained caret models}
+\item{models}{List of trained caret models.}
 
-\item{dataset}{Data frame containing predictors and Class column}
+\item{dataset}{Either:
+(1) A data.frame containing predictors and a 'Class' column, or
+(2) A matrix/data.frame of predictors (without class).}
+
+\item{class}{Optional vector of class labels if dataset lacks 'Class'.}
 }
 \value{
-List of caret confusionMatrix objects (or NA if failed)
+List of caret confusionMatrix objects (or NA for failed models).
 }
 \description{
-Applies a list of caret models to a given dataset, automatically
-aligns factor levels, handles prediction failures, and returns
-confusion matrix objects for each model.
+Applies a list of caret models to a dataset (matrix or data.frame),
+automatically attaches class labels if needed, aligns factor levels,
+handles prediction failures, and returns confusion matrices for each model.
 }
