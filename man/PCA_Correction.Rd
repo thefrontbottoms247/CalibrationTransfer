@@ -2,57 +2,59 @@
 % Please edit documentation in R/PCA_Correction.R
 \name{PCA_Correction}
 \alias{PCA_Correction}
-\title{Stabilized Thin-Plate Dynamic PCA Correction}
+\title{Stabilized Tensor-Product PCA Correction}
 \usage{
 PCA_Correction(
   pca_parent,
   pca_child,
-  ncomp = 2,
+  ncomp = 5,
   lambda = 0.01,
   radial_quantile = 0.85,
   angle_quantile = 0.765,
   pc1_anisotropy = 0.5,
   blend_scale = 1.5,
   max_blend = 0.4,
-  min_blend = 0.05
+  min_blend = 0.05,
+  plot_dims = c(1, 2),
+  plot = TRUE
 )
 }
 \arguments{
-\item{pca_parent}{Parent PCA object (prcomp)}
+\item{pca_parent}{Parent PCA object (from prcomp)}
 
-\item{pca_child}{Child PCA object (prcomp)}
+\item{pca_child}{Child PCA object (from prcomp)}
 
-\item{ncomp}{Number of principal components to correct (default = 2)}
+\item{ncomp}{Number of principal components to correct (default = 5)}
 
-\item{lambda}{Smoothing parameter for thin-plate splines (default = 0.01)}
+\item{lambda}{Regularization factor for spline smoothing (default = 0.01)}
 
-\item{radial_quantile}{Quantile for radial damping threshold (default = 0.85)}
+\item{radial_quantile}{Quantile for radial damping (default = 0.85)}
 
-\item{angle_quantile}{Quantile for angular damping threshold (default = 0.765)}
+\item{angle_quantile}{Quantile for angular damping (default = 0.765)}
 
-\item{pc1_anisotropy}{Strength of PC1 anisotropic damping (default = 0.5)}
+\item{pc1_anisotropy}{Damping strength along PC1 (default = 0.5)}
 
-\item{blend_scale}{Scaling factor for adaptive blending (default = 1.5)}
+\item{blend_scale}{Scaling for adaptive blending (default = 1.5)}
 
 \item{max_blend}{Maximum blending weight (default = 0.4)}
 
 \item{min_blend}{Minimum blending weight (default = 0.05)}
+
+\item{plot_dims}{PCs to visualize (default = c(1,2))}
+
+\item{plot}{Whether to produce a diagnostic plot (default = TRUE)}
 }
 \value{
-List containing:
-\item{child_corrected}{Corrected child PCA scores}
-\item{diagnostics}{Data frame with intermediate values for diagnostics}
-\item{models}{List of fitted TPS models for each coordinate}
+List with:
+\itemize{
+\item{child_corrected}{Corrected PCA scores for the child set.}
+\item{diagnostics}{Data frame of intermediate diagnostics.}
+\item{models}{List of fitted GAM models.}
+}
 }
 \description{
 Corrects child PCA scores to align with parent PCA using hyperspherical
-coordinates and thin-plate spline smoothing. Supports arbitrary dimensions.
-}
-\examples{
-\dontrun{
-library(fields)
-result <- pca_tps_correct(parent.pca, child.pca, ncomp = 3)
-child.pca_cor <- result$child_corrected
-}
-
+coordinates and smooth additive splines (\code{mgcv::gam}). Handles
+arbitrary PCA dimensionalities and avoids memory limits.
+Automatically plots the corrected scores.
 }

@@ -2,16 +2,37 @@
 % Please edit documentation in R/Monte Carlo.R
 \name{Monte_Carlo}
 \alias{Monte_Carlo}
-\title{Short title}
+\title{Monte Carlo PLS Transfer Evaluation}
 \usage{
-Monte_Carlo(parent, class, child_cor, R = 100, prop_train = 0.5, seed = 123)
+Monte_Carlo(
+  parent,
+  class,
+  child_cor,
+  R = 100,
+  prop_train = 0.5,
+  seed = 123,
+  ncomp = 10
+)
 }
 \arguments{
-\item{arg}{Description}
+\item{parent}{Matrix or data frame of parent features.}
+
+\item{class}{Numeric or factor vector of response values or class labels.}
+
+\item{child_cor}{Matrix or data frame of corrected child features.}
+
+\item{R}{Integer. Number of Monte Carlo iterations (default = 100).}
+
+\item{prop_train}{Proportion of samples to use for training (default = 0.5).}
+
+\item{seed}{Random seed for reproducibility (default = 123).}
+
+\item{ncomp}{Number of PLS components to use (default = 10).}
 }
 \value{
-What it outputs
+A data frame (\code{df.monte}) summarizing RMSE distributions and percent differences.
 }
 \description{
-What the function does
+Performs repeated random sub-sampling validation comparing parent vs. corrected-child
+PCA/PLS models. Reports RMSE distributions, percent differences, and summary statistics.
 }
