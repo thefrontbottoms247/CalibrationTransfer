@@ -4,31 +4,25 @@
 \alias{DS}
 \title{Direct Standardization (DS)}
 \usage{
-DS(parent, child)
+DS(parent, child, child.mod, lambda = 0.001, intercept = TRUE)
 }
 \arguments{
-\item{parent}{A numeric matrix or data frame containing spectra (rows = samples, columns = variables)
-from the reference (parent) instrument.}
+\item{parent}{A numeric matrix or data frame (samples × variables) from the parent instrument.}
 
-\item{child}{A numeric matrix or data frame containing spectra from the target (child) instrument,
-with the same number of samples as \code{parent}.}
+\item{child}{A numeric matrix or data frame (samples × variables) from the child instrument.}
+
+\item{child.mod}{A data frame of child spectra to be corrected, including a \code{Class} column.}
+
+\item{lambda}{Regularization term (default = 1e-3) for numerical stability.}
+
+\item{intercept}{Logical; if TRUE (default), adds intercept column.}
 }
 \value{
-The transfer matrix \eqn{T} as a numeric matrix (invisibly).
+Invisibly returns the transfer matrix \eqn{T}.
+The corrected dataset is assigned globally as \code{child.mod_cor}.
 }
 \description{
-Computes the direct standardization transfer matrix between a parent and child
-instrument or dataset, such that \eqn{child * T ≈ parent}.
-}
-\details{
-This function solves for the transfer matrix \eqn{T} using a least-squares approach
-via QR decomposition (\code{qr.solve(child, parent)}). The result can be applied to
-transform new child spectra to the parent space using \code{child_new \%*\% T}.
-}
-\examples{
-\dontrun{
-T <- DS(parent_spectra, child_spectra)
-child_corrected <- child_spectra \%*\% T
-}
-
+Computes a stable Direct Standardization (DS) transfer matrix such that
+\eqn{child \%*\% T ≈ parent}, then applies the transformation to a
+corresponding model dataset (\code{child.mod}).
 }
