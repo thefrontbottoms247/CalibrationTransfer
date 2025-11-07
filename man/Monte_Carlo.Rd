@@ -2,11 +2,12 @@
 % Please edit documentation in R/Monte Carlo.R
 \name{Monte_Carlo}
 \alias{Monte_Carlo}
-\title{Monte Carlo PLS Transfer Evaluation}
+\title{Monte Carlo PLS Transfer Evaluation (Extended)}
 \usage{
 Monte_Carlo(
   parent,
   class,
+  child_uncor,
   child_cor,
   R = 100,
   prop_train = 0.5,
@@ -18,6 +19,8 @@ Monte_Carlo(
 \item{parent}{Matrix or data frame of parent features.}
 
 \item{class}{Numeric or factor vector of response values or class labels.}
+
+\item{child_uncor}{Matrix or data frame of uncorrected child features.}
 
 \item{child_cor}{Matrix or data frame of corrected child features.}
 
@@ -33,6 +36,7 @@ Monte_Carlo(
 A data frame (\code{df.monte}) summarizing RMSE distributions and percent differences.
 }
 \description{
-Performs repeated random sub-sampling validation comparing parent vs. corrected-child
-PCA/PLS models. Reports RMSE distributions, percent differences, and summary statistics.
+Performs repeated random sub-sampling validation comparing:
+Parent Self, Child Uncorrected, and Child Corrected spectra using PLS models.
+Reports RMSE distributions, percent differences, and visual summaries.
 }
