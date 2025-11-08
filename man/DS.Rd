@@ -7,22 +7,19 @@
 DS(parent, child, child.mod, lambda = 0.001, intercept = TRUE)
 }
 \arguments{
-\item{parent}{A numeric matrix or data frame (samples × variables) from the parent instrument.}
+\item{parent}{numeric matrix/data.frame (n × p)}
 
-\item{child}{A numeric matrix or data frame (samples × variables) from the child instrument.}
+\item{child}{numeric matrix/data.frame (n × p) — same samples as parent}
 
-\item{child.mod}{A data frame of child spectra to be corrected, including a \code{Class} column.}
+\item{child.mod}{data.frame to correct; last column is Class}
 
-\item{lambda}{Regularization term (default = 1e-3) for numerical stability.}
+\item{lambda}{ridge term (default 1e-3)}
 
-\item{intercept}{Logical; if TRUE (default), adds intercept column.}
+\item{intercept}{logical; add intercept column (default TRUE)}
 }
 \value{
-Invisibly returns the transfer matrix \eqn{T}.
-The corrected dataset is assigned globally as \code{child.mod_cor}.
+Invisibly returns T; assigns child.mod_cor globally.
 }
 \description{
-Computes a stable Direct Standardization (DS) transfer matrix such that
-\eqn{child \%*\% T ≈ parent}, then applies the transformation to a
-corresponding model dataset (\code{child.mod}).
+Stable DS: computes T such that child \%*\% T ≈ parent, then applies to child.mod.
 }

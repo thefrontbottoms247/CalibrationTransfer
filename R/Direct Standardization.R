@@ -1,48 +1,50 @@
 #' @title Direct Standardization (DS)
-#' @description
-#' Computes a stable Direct Standardization (DS) transfer matrix such that
-#' \eqn{child %*% T ≈ parent}, then applies the transformation to a
-#' corresponding model dataset (\code{child.mod}).
-#'
-#' @param parent A numeric matrix or data frame (samples × variables) from the parent instrument.
-#' @param child  A numeric matrix or data frame (samples × variables) from the child instrument.
-#' @param child.mod A data frame of child spectra to be corrected, including a \code{Class} column.
-#' @param lambda Regularization term (default = 1e-3) for numerical stability.
-#' @param intercept Logical; if TRUE (default), adds intercept column.
-#'
-#' @return Invisibly returns the transfer matrix \eqn{T}.
-#'         The corrected dataset is assigned globally as \code{child.mod_cor}.
-#'
+#' @description Stable DS: computes T such that child %*% T ≈ parent, then applies to child.mod.
+#' @param parent numeric matrix/data.frame (n × p)
+#' @param child  numeric matrix/data.frame (n × p) — same samples as parent
+#' @param child.mod data.frame to correct; last column is Class
+#' @param lambda ridge term (default 1e-3)
+#' @param intercept logical; add intercept column (default TRUE)
+#' @return Invisibly returns T; assigns child.mod_cor globally.
 #' @export
 DS <- function(parent, child, child.mod, lambda = 1e-3, intercept = TRUE) {
   parent <- as.matrix(parent)
   child  <- as.matrix(child)
-  if (nrow(parent) != nrow(child))
-    stop("Parent and child must have the same number of samples (rows).")
+  if (nrow(parent) != nrow(child)) stop("Parent and child must have same #rows (samples).")
 
-  if (intercept)
-    child <- cbind(1, child)
+  X <- if (intercept) cbind(1, child) else child
+  pX <- ncol(X)
 
-  p <- ncol(child)
-  XtX <- crossprod(child)
-  XtY <- crossprod(child, parent)
-  M <- XtX + diag(lambda, p)
+  XtX <- crossprod(X)
+  XtY <- crossprod(X, parent)
+  M   <- XtX + diag(lambda, pX)
 
   if (rcond(M) < 1e-12) {
-    message("Matrix nearly singular — using SVD-based pseudo-inverse.")
-    svd_M <- svd(M)
-    M_inv <- svd_M$u %*% diag(1 / (svd_M$d + lambda)) %*% t(svd_M$u)
+    message("Matrix ill-conditioned — using SVD-based pseudo-inverse.")
+    sv <- svd(M)
+    M_inv <- sv$u %*% diag(1 / sv$d) %*% t(sv$u)  # no extra +lambda here
     T <- M_inv %*% XtY
   } else {
     T <- solve(M, XtY)
   }
 
-  # --- Apply transformation to model dataset ---
-  child.mod_cor <- as.matrix(child.mod[,-ncol(child.mod)]) %*% T
-  child.mod_cor <- as.data.frame(child.mod_cor)
-  child.mod_cor$Class <- child.mod$Class
+  # Apply to child.mod (expect last column = Class)
+  Xmod <- as.matrix(child.mod[, -ncol(child.mod), drop = FALSE])
+  if (intercept) Xmod <- cbind(1, Xmod)
 
-  # Assign globally for downstream modeling
+  if (ncol(Xmod) != nrow(T)) {
+    stop(sprintf("Non-conformable: ncol(child.mod%s)=%d but nrow(T)=%d.",
+                 if (intercept) "+intercept" else "",
+                 ncol(Xmod), nrow(T)))
+  }
+
+  child.mod_cor <- Xmod %*% T
+  child.mod_cor <- as.data.frame(child.mod_cor)
+
+  # Optional: align corrected column names to parent wavelengths if available
+  colnames(child.mod_cor) <- colnames(parent)
+
+  child.mod_cor$Class <- child.mod$Class
   assign("child.mod_cor", child.mod_cor, envir = .GlobalEnv)
 
   invisible(T)

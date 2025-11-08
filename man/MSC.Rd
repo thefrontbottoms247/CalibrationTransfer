@@ -2,40 +2,25 @@
 % Please edit documentation in R/Multiplicative Scatter Correction.R
 \name{MSC}
 \alias{MSC}
-\title{Multiplicative Scatter Correction (MSC)}
+\title{MSC correction within samples (in-place, global assignment)}
 \usage{
-MSC(X, reference = NULL)
+MSC(data, class_vec, scans_per_sample)
 }
 \arguments{
-\item{X}{A numeric matrix or data frame of sample spectra (rows = samples, columns = variables).}
+\item{data}{matrix \link{n_scans x n_wavelengths}; each row = one scan}
 
-\item{reference}{Optional numeric vector or matrix representing the reference spectrum.
-If not provided, the mean spectrum of \code{X} is used.}
-}
-\value{
-A list containing:
-\describe{
-\item{\code{Xmsc}}{MSC-corrected spectra.}
-\item{\code{reference}}{Reference spectrum used for correction.}
-\item{\code{coefficients}}{Matrix of regression intercepts and slopes (columns: intercept, slope).}
-}
+\item{class_vec}{vector of length n_scans giving the class label for each scan}
+
+\item{scans_per_sample}{integer; number of scans per sample (e.g. 5)}
 }
 \description{
-Performs multiplicative scatter correction (MSC) on spectral data to reduce
-additive and multiplicative effects caused by light scattering and particle size
-variations between samples or instruments.
+Performs Multiplicative Scatter Correction (MSC) on a full dataset,
+correcting each scan using the mean spectrum of its own sample as reference.
+The input matrix \code{data} is overwritten globally with its corrected values.
 }
 \details{
-For each sample spectrum \eqn{x_i}, MSC performs a simple linear regression against
-the reference spectrum \eqn{x_{ref}}:
-\deqn{x_i = a_i + b_i x_{ref} + e_i}
-and corrects the spectrum as:
-\deqn{x_{corr,i} = (x_i - a_i) / b_i}
-}
-\examples{
-\dontrun{
-result <- MSC(X = spectra_matrix)
-Xcorr <- result$Xmsc
-}
-
+For each sample, its mean spectrum is computed and used as the reference.
+Each scan in that sample is linearly adjusted: (scan - a) / b,
+where a and b come from lm(scan ~ ref). This removes additive and
+multiplicative differences between scans within the same sample.
 }

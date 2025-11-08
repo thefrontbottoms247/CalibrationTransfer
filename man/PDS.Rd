@@ -7,11 +7,10 @@
 PDS(
   parent,
   child,
-  window,
+  child.mod,
+  window = "static",
   ncomp = 20,
-  model_type = "svmLinear",
-  degree = 1,
-  svm_kernel = "radial",
+  model_type = "OLS",
   base_window = 5,
   peak_window = 20,
   ncomp_svd = NULL,
@@ -23,15 +22,15 @@ PDS(
 
 \item{child}{Numeric matrix or data frame of target spectra.}
 
+\item{child.mod}{Optional data frame of child spectra to be corrected,
+with a \code{Class} column as the last variable.}
+
 \item{window}{Character; "static" or "dynamic" window definition method.}
 
 \item{ncomp}{Integer; number of components for latent variable models.}
 
-\item{model_type}{Character; regression type ("OLS", "Ridge", "Lasso", "PLSR", "PCR", or "SVM").}
-
-\item{degree}{Integer; polynomial degree for nonlinear feature expansion.}
-
-\item{svm_kernel}{Character; SVM kernel type ("linear", "polynomial", or "radial").}
+\item{model_type}{Character; regression type ("OLS", "Ridge", "Lasso",
+"PLSR", or "PCR").}
 
 \item{base_window}{Integer; base window size for static or non-peak regions.}
 
@@ -42,8 +41,13 @@ PDS(
 \item{nonneg}{Logical; whether to enforce non-negativity on regression coefficients.}
 }
 \value{
-A list with the sparse coefficient matrix (\code{P}) and intercept vector (\code{intercept}).
+A list containing:
+\item{P}{Sparse coefficient matrix (p × p).}
+\item{intercept}{Intercept vector (length p).}
+\item{child.mod_cor}{Corrected dataset (if \code{child.mod} supplied).}
 }
 \description{
-Performs calibration transfer between parent and child instruments using regression models.
+Performs classical piecewise direct standardization between parent and child
+instruments. Each wavelength region in the child is locally regressed onto
+the corresponding region in the parent using linear models.
 }
