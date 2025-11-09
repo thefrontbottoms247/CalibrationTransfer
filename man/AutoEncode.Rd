@@ -2,47 +2,47 @@
 % Please edit documentation in R/Auto Encoder.R
 \name{AutoEncode}
 \alias{AutoEncode}
-\title{Autoencoder-Based Calibration Transfer}
+\title{Autoencoder-Based Calibration Transfer (Robust + Weighted)}
 \usage{
-AutoEncode(parent, child, latent_dim = 20, epochs = 200, batch_size = 32)
+AutoEncode(
+  parent.trans,
+  child.trans,
+  child.mod,
+  latent_dim = 20,
+  epochs = 200,
+  batch_size = 32,
+  peaks = NULL,
+  peak_weight = 5
+)
 }
 \arguments{
-\item{parent}{Matrix or data frame of parent spectra (n x m).}
+\item{parent.trans}{Numeric matrix or data frame of parent calibration spectra.}
 
-\item{child}{Matrix or data frame of child spectra (n x m).}
+\item{child.trans}{Numeric matrix or data frame of child calibration spectra.}
 
-\item{latent_dim}{Integer; number of latent features to learn (default = 20).}
+\item{child.mod}{Numeric matrix or data frame of child modeling spectra.}
 
-\item{epochs}{Integer; number of training epochs (default = 200).}
+\item{latent_dim}{Integer. Number of latent features to learn (default = 20).}
 
-\item{batch_size}{Integer; batch size for training (default = 32).}
+\item{epochs}{Integer. Number of training epochs (default = 200).}
+
+\item{batch_size}{Integer. Batch size for training (default = 32).}
+
+\item{peaks}{Optional logical or numeric index vector of peak wavelengths.
+If provided, the loss will weight those wavelengths higher.}
+
+\item{peak_weight}{Numeric multiplier for peak weighting (default = 5).}
 }
 \value{
-Invisibly returns \code{NULL}; assigns two objects to the global environment:
+Invisibly returns training history. Assigns globally:
 \itemize{
-\item \code{auto_latent} — matrix of latent representations.
-\item \code{child_to_parent} — matrix of reconstructed child spectra.
+\item \code{auto_latent} — latent encodings of all training data.
+\item \code{child_to_parent} — reconstructed child calibration spectra.
+\item \code{child.mod_cor} — corrected child modeling spectra.
 }
 }
 \description{
-Performs nonlinear calibration transfer using a joint autoencoder trained
-to reconstruct and align spectra from parent and child instruments. The
-trained model compresses both datasets into a shared latent representation
-and reconstructs the child spectra in the parent domain.
-}
-\details{
-This function uses an autoencoder built with the \pkg{keras} and
-\pkg{tensorflow} packages. Both parent and child spectra are scaled and
-jointly encoded into a shared latent space. Reconstruction minimizes mean
-squared error, and the child reconstructions are taken as the transferred
-spectra in the parent domain.
-
-The latent encodings (\code{auto_latent}) and transferred spectra (\code{child_to_parent})
-are assigned to the global environment for subsequent modeling or visualization.
-}
-\examples{
-\dontrun{
-AutoEncode(parent_data, child_data, latent_dim = 25, epochs = 300)
-# Results available globally as 'auto_latent' and 'child_to_parent'
-}
+Trains a denoising, L2-regularized autoencoder on parent and child spectra,
+with optional wavelength weighting for chemically informative peaks,
+then applies the learned mapping to correct child modeling spectra.
 }
