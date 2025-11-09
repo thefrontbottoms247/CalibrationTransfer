@@ -4,49 +4,60 @@
 \alias{CORAL}
 \title{CORAL: Correlation Alignment for Domain Adaptation}
 \usage{
-CORAL(child, parent, center = TRUE, scale = FALSE, lambda = 1e-06)
+CORAL(
+  child,
+  parent,
+  center = TRUE,
+  scale = FALSE,
+  lambda = 1e-06,
+  method = c("auto", "full", "svd"),
+  rank = NULL
+)
 }
 \arguments{
-\item{child}{Numeric matrix or data frame from the \emph{child} (target) instrument.}
+\item{child}{Numeric matrix or data frame from the child (target) instrument.}
 
-\item{parent}{Numeric matrix or data frame from the \emph{parent} (source) instrument.}
+\item{parent}{Numeric matrix or data frame from the parent (source) instrument.}
 
-\item{center}{Logical; if TRUE (default), center both datasets before alignment.}
+\item{center}{Logical; center both datasets before alignment (default TRUE).}
 
-\item{scale}{Logical; if TRUE, scale variables to unit variance before computing covariances.}
+\item{scale}{Logical; scale variables to unit variance before computing covariances (default FALSE).}
 
-\item{lambda}{Numeric; ridge regularization term added to diagonal (default = 1e-6).}
+\item{lambda}{Numeric ridge term added to diagonals for stability (default 1e-6).}
+
+\item{method}{Character, either \code{"full"} or \code{"svd"} (default \code{"auto"} chooses \code{"svd"} when n << p).}
+
+\item{rank}{Optional integer for \code{"svd"} method, number of retained components.}
 }
 \value{
-Invisibly returns the aligned child spectra (matrix) with attribute \code{"A"}
-containing the applied transformation matrix. The aligned spectra are also assigned
-globally as \code{child}.
+Invisibly returns the aligned child spectra with attribute \code{"A"}
+(transformation matrix). The aligned data are also assigned globally as \code{child}.
 }
 \description{
-Performs unsupervised domain adaptation between a \emph{child} (target) and
-\emph{parent} (source) instrument by aligning their covariance structures.
-The method "re-colors" the target data so that its covariance matches the
-source domain. This helps stabilize calibration transfer when cross-instrument
-differences are largely second-order (covariance) distortions.
+Aligns covariance structures between a parent (source) and child (target)
+instrument for unsupervised calibration transfer. Two computational modes are
+supported:
+\itemize{
+\item \strong{"full"}: classic implementation using full covariance matrices.
+\item \strong{"svd"}: low-rank SVD version for high-dimensional spectra (n << p).
+}
 }
 \details{
-Given source data \eqn{X_s} and target data \eqn{X_t}, CORAL finds a linear
-transform \eqn{A = \Sigma_t^{-1/2} \Sigma_s^{1/2}} such that the transformed
-target data \eqn{X_t A} has the same covariance as \eqn{X_s}.
+Given source data \eqn{X_s} and target data \eqn{X_t}, CORAL computes a
+linear transform \eqn{A = \Sigma_t^{-1/2} \Sigma_s^{1/2}} so that
+\eqn{X_t A} has the same covariance as \eqn{X_s}.
 
-Optionally, both datasets are centered before alignment and the target is
-shifted to match the source mean afterward. A small ridge term is added to
-each covariance matrix for numerical stability.
+The SVD version operates in the r-dimensional sample subspace (r ≤ n − 1),
+avoiding the p×p covariance eigendecomposition and reducing memory load from
+O(p²) to O(p·r).
 }
 \examples{
 \dontrun{
-CORAL(child.trans, parent.trans)
-# child is now globally replaced with its aligned version
-PDS(parent.trans, child, child.mod, window = "dynamic", model_type = "PLSR")
+CORAL(child.trans, parent.trans, method = "svd")
+CORAL(child.trans, parent.trans, method = "full")
 }
-
 }
 \references{
-Sun, B., & Saenko, K. (2016). Deep CORAL: Correlation Alignment for Deep Domain Adaptation.
-\emph{ECCV Workshops}, 443–450. Springer.
+Sun & Saenko (2016). Deep CORAL: Correlation Alignment for Deep Domain Adaptation.
+ECCV Workshops, 443–450. Springer.
 }

@@ -18,6 +18,7 @@
 #' MSC_within_sample(data, class_vec, 5)
 #' # After running, data, sample_means, and class_per_sample exist in global env.
 #'
+#' @export
 MSC <- function(data, class_vec, scans_per_sample) {
   n <- nrow(data)
   m <- ncol(data)
