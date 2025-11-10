@@ -154,7 +154,6 @@ Monte_Carlo <- function(parent,
     )
 
   print(p)
-  ggsave("Monte_Carlo_RMSE_3set.png", p, width = 7.9, height = 7.68, dpi = 300)
 
   invisible(df.monte)
 }
