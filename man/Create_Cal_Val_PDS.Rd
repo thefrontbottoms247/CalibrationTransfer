@@ -2,7 +2,7 @@
 % Please edit documentation in R/Create_Cal_Val_PDS.R
 \name{Create_Cal_Val_PDS}
 \alias{Create_Cal_Val_PDS}
-\title{Short title}
+\title{Create Calibration and Validation Sets for PDS}
 \usage{
 Create_Cal_Val_PDS(
   parent,
@@ -15,15 +15,39 @@ Create_Cal_Val_PDS(
   p = 0.1,
   k = 5,
   remove_classes = NULL,
-  ncomp_svd = NULL
+  ncomp_svd = NULL,
+  CORAL = FALSE
 )
 }
 \arguments{
-\item{arg}{Description}
+\item{parent}{Reference spectra (matrix or data.frame)}
+
+\item{child}{Target spectra (matrix or data.frame)}
+
+\item{class.vector}{Class labels corresponding to rows}
+
+\item{wl.vector}{Wavelength vector}
+
+\item{seed}{Random seed for reproducibility}
+
+\item{feat_select}{Optional integer or logical vector for feature selection}
+
+\item{split_method}{'partition' (stratified) or 'kfold'}
+
+\item{p}{Proportion for calibration (if split_method='partition')}
+
+\item{k}{Number of folds (if split_method='kfold')}
+
+\item{remove_classes}{Vector of classes to exclude}
+
+\item{ncomp_svd}{Optional vector of SVD components}
+
+\item{CORAL}{Logical; if TRUE, applies CORAL correction (child → parent)}
 }
 \value{
-What it outputs
+Invisible list of calibration and validation subsets
 }
 \description{
-What the function does
+Generates calibration and validation subsets for PDS, with optional CORAL correction
+and feature selection.
 }

@@ -32,23 +32,23 @@ CPDS <- function(parent, child, child.mod = NULL,
                  model_type = "OLS", ncomp = 20, nonneg = FALSE,
                  coral_method = "auto", coral_center = TRUE, coral_scale = FALSE,
                  coral_lambda = 1e-6) {
-  
+
   order <- match.arg(order)
   parent <- as.matrix(parent); child <- as.matrix(child)
   stopifnot(ncol(parent) == ncol(child))
   p <- ncol(parent)
-  
+
   suppressPackageStartupMessages({
     require(Matrix); require(glmnet); require(pls); require(nnls); require(MASS); require(expm)
   })
-  
+
   .coral_fit <- function(Xc, Xp, center = TRUE, scale = FALSE, lambda = 1e-6, method = c("auto","full","svd")) {
     method <- match.arg(method)
     Xc <- as.matrix(Xc); Xp <- as.matrix(Xp)
     nc <- nrow(Xc); np <- nrow(Xp); pp <- ncol(Xc)
     if (ncol(Xp) != pp) stop("CORAL: mismatched columns.")
     if (method == "auto") method <- if (pp > (nc + np)) "svd" else "full"
-    
+
     if (center) {
       muc <- colMeans(Xc); mup <- colMeans(Xp)
       Xc <- sweep(Xc, 2, muc); Xp <- sweep(Xp, 2, mup)
@@ -58,7 +58,7 @@ CPDS <- function(parent, child, child.mod = NULL,
       sdp <- pmax(apply(Xp, 2, sd), 1e-12)
       Xc <- sweep(Xc, 2, sdc, "/"); Xp <- sweep(Xp, 2, sdp, "/")
     }
-    
+
     if (method == "full") {
       Sc <- cov(Xc) + diag(lambda, pp)
       Sp <- cov(Xp) + diag(lambda, pp)
@@ -75,19 +75,19 @@ CPDS <- function(parent, child, child.mod = NULL,
     }
     list(A = A, center = if (center) mup else NULL)
   }
-  
+
   .coral_apply <- function(X, fit) {
     Y <- X %*% fit$A
     if (!is.null(fit$center)) Y <- sweep(Y, 2, fit$center, "+")
     Y
   }
-  
+
   .pds_fit <- function(Parent, Child,
                        window = "static", base_window = 5, peak_window = 20,
                        model_type = "OLS", ncomp = 20, nonneg = FALSE,
                        local_coral = FALSE,
                        coral_lambda = 1e-6) {
-    
+
     nvar <- ncol(Parent)
     if (window == "dynamic") {
       if (!exists("peaks", envir = .GlobalEnv)) stop("Dynamic window needs global `peaks`.")
@@ -96,23 +96,23 @@ CPDS <- function(parent, child, child.mod = NULL,
     } else if (window == "static") {
       wv <- rep(base_window, nvar)
     } else stop("window must be 'static' or 'dynamic'.")
-    
+
     P <- matrix(0, nvar, nvar)
     icpt <- numeric(nvar)
-    
+
     for (i in seq_len(nvar)) {
       half <- floor(wv[i] / 2)
       lo <- max(1, i - half); hi <- min(nvar, i + half)
       Xw <- as.matrix(Child[, lo:hi, drop = FALSE])
       yw <- as.numeric(Parent[, i])
-      
+
       if (local_coral && (hi - lo + 1) >= 2) {
         Sc <- cov(Child[, lo:hi, drop = FALSE]) + diag(coral_lambda, (hi - lo + 1))
         Sp <- cov(Parent[, lo:hi, drop = FALSE]) + diag(coral_lambda, (hi - lo + 1))
         A  <- MASS::ginv(expm::sqrtm(Sc)) %*% expm::sqrtm(Sp)
         Xw <- Xw %*% A
       }
-      
+
       if (nonneg && model_type %in% c("OLS","Ridge","Lasso")) {
         if (model_type == "OLS") {
           fit <- nnls(Xw, yw)
@@ -139,14 +139,14 @@ CPDS <- function(parent, child, child.mod = NULL,
         icpt[i] <- b[1]; P[lo:hi, i] <- b[-1]
       } else stop("Unsupported model_type.")
     }
-    
+
     list(P = Matrix(P, sparse = TRUE), intercept = icpt)
   }
-  
+
   apply_pds <- function(X, fit) {
     X %*% as.matrix(fit$P) + matrix(fit$intercept, nrow(X), p, byrow = TRUE)
   }
-  
+
   # ---- Pipelines ----
   if (order == "CORAL->PDS") {
     cf  <- .coral_fit(child, parent, center = coral_center, scale = coral_scale,
@@ -156,7 +156,7 @@ CPDS <- function(parent, child, child.mod = NULL,
                      model_type, ncomp, nonneg, local_coral = FALSE, coral_lambda = coral_lambda)
     Xc_aligned <- child_c
     A <- cf$A
-    
+
   } else if (order == "PDS->CORAL") {
     pfit <- .pds_fit(parent, child, window, base_window, peak_window,
                      model_type, ncomp, nonneg, local_coral = FALSE, coral_lambda = coral_lambda)
@@ -165,14 +165,14 @@ CPDS <- function(parent, child, child.mod = NULL,
                       lambda = coral_lambda, method = coral_method)
     Xc_aligned <- .coral_apply(Xp_child, cf)
     A <- cf$A
-    
+
   } else { # local-CORAL-PDS
     pfit <- .pds_fit(parent, child, window, base_window, peak_window,
                      model_type, ncomp, nonneg, local_coral = TRUE, coral_lambda = coral_lambda)
     Xc_aligned <- child  # training child in original space; mapping lives in P
     A <- NULL
   }
-  
+
   # ---- child.mod correction ----
   child.mod_cor <- NULL
   if (!is.null(child.mod)) {
@@ -193,11 +193,14 @@ CPDS <- function(parent, child, child.mod = NULL,
     if (!is.null(colnames(parent))) colnames(child.mod_cor) <- colnames(parent)
     if ("Class" %in% colnames(child.mod)) child.mod_cor$Class <- child.mod$Class
   }
-  
+
   out <- list(X_child_aligned = Xc_aligned,
               P = if (exists("pfit")) pfit$P else NULL,
               intercept = if (exists("pfit")) pfit$intercept else NULL,
               A = A,
               child.mod_cor = child.mod_cor)
+
+  assign("child.mod_cor", out$child.mod_cor, envir = .GlobalEnv)
+
   invisible(out)
 }
